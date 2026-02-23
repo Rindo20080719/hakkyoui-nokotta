@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>発狂ーぃ のこった！</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ロゴ背景 -->
+  <div class="bg-logo"></div>
+
+  <!-- 背景装飾 -->
+  <div class="bg-clouds">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+    <div class="cloud c4"></div>
+  </div>
+
+  <!-- ヘッダー -->
+  <header class="main-header">
+    <div class="header-logo">
+      <img src="images/logo.png" alt="発狂ーぃ のこった！" class="logo-img">
+    </div>
+    <nav class="header-nav">
+      <div id="authButtons" class="auth-btns">
+        <button class="btn btn-outline" onclick="showLogin()">ログイン</button>
+        <button class="btn btn-gold" onclick="showRegister()">力士登録</button>
+      </div>
+      <div id="userInfo" class="user-info hidden">
+        <button class="user-badge-btn" onclick="showProfile()">
+          <span id="headerAvatar" class="avatar-badge avatar-sm"></span>
+          <span id="usernameDisplay">---</span>
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="logout()">退場</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- メインアリーナ -->
+  <main class="arena">
+
+    <!-- ═══ IDLE STATE ═══ -->
+    <section id="idleState" class="game-state">
+      <div class="dohyo-stage">
+        <div class="stage-shadow"></div>
+        <div class="dohyo-wrap">
+          <!-- 四方の印 -->
+          <span class="dir-mark dm-n"></span>
+          <span class="dir-mark dm-s"></span>
+          <span class="dir-mark dm-e"></span>
+          <span class="dir-mark dm-w"></span>
+
+          <!-- 土俵本体 -->
+          <div class="dohyo" id="dohyoBtn" onclick="startRecording()" role="button" tabindex="0"
+               onkeypress="if(event.key==='Enter')startRecording()">
+            <div class="dohyo-surface">
+              <!-- 仕切り線 -->
+              <div class="shikiri shikiri-l"></div>
+              <div class="shikiri shikiri-r"></div>
+              <!-- ボタンテキスト -->
+              <div class="dohyo-label">
+                <span class="dohyo-sub">はっけよい</span>
+                <span class="dohyo-main">発狂する</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="stage-hint">↑ 土俵を踏んで計測開始！（5秒間）</p>
+      </div>
+    </section>
+
+    <!-- ═══ RECORDING STATE ═══ -->
+    <section id="recordingState" class="game-state hidden">
+      <div class="rec-area">
+        <div class="hakkeyoi-banner" id="hakkeyoiBanner">はっけよい！</div>
+
+        <div class="countdown-wrap">
+          <div id="countdown" class="countdown">5</div>
+          <span class="countdown-unit">秒</span>
+        </div>
+
+        <div class="meter-box">
+          <div class="db-live">
+            <span id="dbValue" class="db-live-num">--</span>
+            <span class="db-live-unit">dB</span>
+          </div>
+          <div class="meter-track">
+            <div id="dbBar" class="meter-fill"></div>
+          </div>
+          <div class="meter-scale">
+            <span>0</span><span>30</span><span>60</span><span>90</span><span>120</span>
+          </div>
+          <div id="dbPeak" class="db-peak-label">最高: -- dB</div>
+        </div>
+
+        <div class="visualizer" id="visualizer">
+          <!-- 32本のバー -->
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+          <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ RESULT STATE ═══ -->
+    <section id="resultState" class="game-state hidden">
+      <div class="result-area">
+        <div class="result-card">
+          <div class="result-gyoji">行司　計測完了！</div>
+          <div class="result-score">
+            <span id="resultDb" class="result-num">--</span>
+            <span class="result-unit">dB</span>
+          </div>
+          <div id="resultEstimate" class="result-estimate"></div>
+        </div>
+        <div class="result-actions">
+          <button class="btn btn-outline" onclick="resetGame()">終了</button>
+          <button class="btn btn-gold" onclick="retryRecording()">取り直し！</button>
+          <button class="btn btn-red" onclick="showSubmitForm()">番付に名を刻む！</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ SUBMIT STATE ═══ -->
+    <section id="submitState" class="game-state hidden">
+      <div class="submit-area">
+        <h2 class="submit-title">世界番付　登録</h2>
+        <div class="submit-score-disp">
+          <span id="submitDbVal" class="submit-score-num">--</span>
+          <span class="submit-score-unit">dB</span>
+        </div>
+
+        <div class="form-card">
+          <div class="form-field">
+            <label class="form-label">力士名（ユーザー名）</label>
+            <input type="text" id="rankUsername" class="form-input"
+              placeholder="四股名を入力（例：発狂太郎）" maxlength="20">
+          </div>
+          <div class="form-field">
+            <label class="check-label">
+              <input type="checkbox" id="audioPublic" class="check-input">
+              <span class="check-box"></span>
+              <span>音声を公開する（みんなに聴かせる）</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="submit-actions">
+          <button class="btn btn-red btn-large" onclick="submitRanking()">番付に名を刻む！</button>
+          <button class="btn btn-outline" onclick="showResult()">戻る</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 世界番付（常に表示） ═══ -->
+    <section class="ranking-section">
+      <div class="ranking-header">
+        <div class="ranking-header-deco"></div>
+        <h2 class="ranking-title">世界番付</h2>
+        <div class="ranking-header-deco"></div>
+      </div>
+      <div id="rankingsList" class="rankings-list">
+        <div class="loading-msg">読み込み中...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════ ログインモーダル ════ -->
+  <div id="loginModal" class="modal-overlay hidden" onclick="closeOnOverlay(event,'loginModal')">
+    <div class="modal-box sumo-modal">
+      <div class="sumo-modal-rope"></div>
+      <div class="sumo-modal-hdr">
+        <div class="sumo-modal-kamon">土</div>
+        <h2 class="sumo-modal-ttl">入　場</h2>
+        <p class="sumo-modal-sub">番付に名を刻んだ者よ、いざ参れ</p>
+        <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label">四股名（ユーザー名）</label>
+          <input type="text" id="loginUsername" class="form-input" placeholder="四股名を入力">
+        </div>
+        <div class="form-field">
+          <label class="form-label">合言葉（パスワード）</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="合言葉を入力"
+            onkeypress="if(event.key==='Enter')login()">
+        </div>
+        <div id="loginError" class="form-err hidden"></div>
+      </div>
+      <div class="sumo-modal-ftr">
+        <button class="btn btn-red btn-sumo-action" onclick="login()">いざ、土俵へ！</button>
+        <button class="btn btn-outline" onclick="closeModal('loginModal')">退場</button>
+      </div>
+      <div class="sumo-modal-rope sumo-modal-rope-bottom"></div>
+    </div>
+  </div>
+
+  <!-- ════ 登録モーダル ════ -->
+  <div id="registerModal" class="modal-overlay hidden" onclick="closeOnOverlay(event,'registerModal')">
+    <div class="modal-box sumo-modal">
+      <div class="sumo-modal-rope"></div>
+      <div class="sumo-modal-hdr">
+        <div class="sumo-modal-kamon">力</div>
+        <h2 class="sumo-modal-ttl">力士登録</h2>
+        <p class="sumo-modal-sub">汝の四股名を刻み、番付に挑め</p>
+        <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label">四股名（ユーザー名）</label>
+          <input type="text" id="registerUsername" class="form-input" placeholder="2〜20文字" maxlength="20">
+        </div>
+        <div class="form-field">
+          <label class="form-label">合言葉（パスワード）</label>
+          <input type="password" id="registerPassword" class="form-input" placeholder="6文字以上">
+        </div>
+        <div class="form-field">
+          <label class="form-label">合言葉（確認）</label>
+          <input type="password" id="registerPasswordConfirm" class="form-input" placeholder="もう一度入力"
+            onkeypress="if(event.key==='Enter')register()">
+        </div>
+        <div id="registerError" class="form-err hidden"></div>
+      </div>
+      <div class="sumo-modal-ftr">
+        <button class="btn btn-red btn-sumo-action" onclick="register()">四股名を刻む！</button>
+        <button class="btn btn-outline" onclick="closeModal('registerModal')">やめる</button>
+      </div>
+      <div class="sumo-modal-rope sumo-modal-rope-bottom"></div>
+    </div>
+  </div>
+
+  <!-- ════ プロフィール編集モーダル ════ -->
+  <div id="profileModal" class="modal-overlay hidden" onclick="closeOnOverlay(event,'profileModal')">
+    <div class="modal-box sumo-modal profile-modal">
+      <div class="sumo-modal-rope"></div>
+      <div class="sumo-modal-hdr">
+        <h2 class="sumo-modal-ttl">力士プロフィール</h2>
+        <p class="sumo-modal-sub">汝の姿を世に知らしめよ</p>
+        <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- 現在のアバター -->
+        <div class="profile-avatar-preview">
+          <div id="profileAvatarPreview" class="avatar-badge avatar-lg"></div>
+          <div id="profileCatchphrasePreview" class="profile-catchphrase-preview"></div>
+        </div>
+
+        <!-- 画像アップロード -->
+        <div class="form-field">
+          <label class="form-label">画像をアップロード（任意）</label>
+          <div class="avatar-upload-area">
+            <label class="avatar-upload-btn" for="avatarFileInput">
+              画像を選ぶ
+            </label>
+            <input type="file" id="avatarFileInput" accept="image/*" class="hidden"
+              onchange="previewAvatarImage(event)">
+            <span id="avatarFileName" class="avatar-file-name">未選択</span>
+            <button id="avatarDeleteBtn" class="btn-delete hidden" onclick="deleteAvatarImage()">画像を削除</button>
+          </div>
+        </div>
+
+        <!-- アイコン選択 -->
+        <div class="form-field" id="kanjiSection">
+          <label class="form-label">漢字アイコン選択（画像なしの場合）</label>
+          <div class="avatar-grid" id="avatarGrid">
+            <!-- app.js で生成 -->
+          </div>
+        </div>
+
+        <!-- カラー選択 -->
+        <div class="form-field">
+          <label class="form-label">カラー選択</label>
+          <div class="color-grid" id="colorGrid">
+            <!-- app.js で生成 -->
+          </div>
+        </div>
+
+        <!-- 決め台詞 -->
+        <div class="form-field">
+          <label class="form-label">決め台詞（一言）</label>
+          <input type="text" id="profileCatchphrase" class="form-input"
+            placeholder="例：発狂じゃー！" maxlength="30">
+        </div>
+
+        <div id="profileError" class="form-err hidden"></div>
+      </div>
+      <div class="sumo-modal-ftr">
+        <button class="btn btn-red btn-sumo-action" onclick="saveProfile()">保存する</button>
+        <button class="btn btn-outline" onclick="closeModal('profileModal')">閉じる</button>
+      </div>
+      <div class="sumo-modal-rope sumo-modal-rope-bottom"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
