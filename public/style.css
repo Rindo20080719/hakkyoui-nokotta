@@ -633,6 +633,15 @@ body {
 }
 .btn-audio  { border: 1px solid var(--gold); color: var(--gold); }
 .btn-audio:hover  { background: rgba(212,175,55,0.2); }
+.btn-audio.playing {
+  border-color: var(--red-light);
+  color: var(--red-light);
+  animation: playing-pulse 1s ease-in-out infinite;
+}
+@keyframes playing-pulse {
+  0%,100% { box-shadow: 0 0 4px rgba(232,64,64,0.4); }
+  50%      { box-shadow: 0 0 12px rgba(232,64,64,0.9); }
+}
 .btn-delete { border: 1px solid var(--red); color: var(--red); }
 .btn-delete:hover { background: rgba(192,48,42,0.2); }
 

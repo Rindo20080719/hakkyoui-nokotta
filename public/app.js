@@ -367,7 +367,7 @@ function renderRankings(list) {
     const badge     = getRankLabelByDb(r.decibel);
     const date      = new Date(r.createdAt).toLocaleDateString('ja-JP');
     const audioBtn  = r.hasAudio
-      ? `<button class="btn-audio" onclick="playAudio('${r.audioUrl}')">▶ 聴く</button>` : '';
+      ? `<button class="btn-audio" onclick="playAudio('${r.audioUrl}', this)">▶ 聴く</button>` : '';
     const deleteBtn = r.isOwn
       ? `<button class="btn-delete" onclick="deleteRanking(${r.id})">削除</button>` : '';
 
@@ -449,9 +449,41 @@ async function deleteRanking(id) {
   }
 }
 
-function playAudio(url) {
+let currentAudio = null;
+let currentAudioBtn = null;
+
+function playAudio(url, btn) {
+  // 同じボタンを押したら停止
+  if (currentAudio && !currentAudio.paused) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    resetAudioBtn(currentAudioBtn);
+    if (currentAudioBtn === btn) { currentAudio = null; currentAudioBtn = null; return; }
+  }
+
+  // 別のボタンが再生中なら止める
+  if (currentAudioBtn && currentAudioBtn !== btn) resetAudioBtn(currentAudioBtn);
+
+  currentAudioBtn = btn;
+  btn.textContent = '⏸ 再生中...';
+  btn.classList.add('playing');
+
   const audio = new Audio(url);
-  audio.play().catch(err => alert('再生に失敗しました：' + err.message));
+  currentAudio = audio;
+
+  audio.play().catch(err => {
+    alert('再生に失敗しました：' + err.message);
+    resetAudioBtn(btn);
+  });
+
+  audio.onended = () => resetAudioBtn(btn);
+  audio.onerror = () => resetAudioBtn(btn);
+}
+
+function resetAudioBtn(btn) {
+  if (!btn) return;
+  btn.textContent = '▶ 聴く';
+  btn.classList.remove('playing');
 }
 
 // ══════════════════════════════════════════════
