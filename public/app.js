@@ -302,7 +302,11 @@ function showResult() {
 }
 
 // ── ランキング登録 ────────────────────────────
+let isSubmitting = false;
+
 async function submitRanking() {
+  if (isSubmitting) return;
+
   const username    = document.getElementById('rankUsername').value.trim();
   const audioPublic = document.getElementById('audioPublic').checked;
 
@@ -314,6 +318,10 @@ async function submitRanking() {
     alert('力士名は20文字以内で入力してください');
     return;
   }
+
+  isSubmitting = true;
+  const submitBtn = document.querySelector('#submitState .btn-submit');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '登録中...'; }
 
   const formData = new FormData();
   formData.append('username',    username);
@@ -351,6 +359,9 @@ async function submitRanking() {
     }
   } catch (err) {
     alert('通信エラーが発生しました：' + err.message);
+  } finally {
+    isSubmitting = false;
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '登録する'; }
   }
 }
 
