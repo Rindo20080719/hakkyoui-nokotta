@@ -221,7 +221,7 @@ app.get('/api/rankings', async (req, res) => {
         hasAudio:    !!(r.audio_public && r.audio_filename),
         audioUrl:    r.audio_public && r.audio_filename ? `/api/audio/${r.audio_filename}` : null,
         createdAt:   r.created_at,
-        isOwn:       req.session.userId ? (req.session.userId === r.user_id) : false,
+        isOwn:       req.session.userId ? (Number(req.session.userId) === Number(r.user_id)) : false,
         avatar:      user?.avatar       || null,
         avatarColor: user?.avatar_color || null,
         avatarImage: user?.avatar_image || null,
