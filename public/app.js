@@ -100,6 +100,23 @@ function resumeBGM() {
   bgmTimer = setTimeout(playBGMLoop, 7000);
 }
 
+function lowerBGM() {
+  if (bgm) bgm.volume = 0.08;
+}
+
+function restoreBGM() {
+  if (bgm) bgm.volume = 0.35;
+}
+
+function playSFXKakka() {
+  const sfx = document.getElementById('sfxKakka');
+  if (!sfx) { resumeBGM(); return; }
+  pauseBGM();
+  sfx.currentTime = 0;
+  sfx.play().catch(() => {});
+  sfx.onended = () => resumeBGM();
+}
+
 // ── 初期化 ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   initBGM();
@@ -297,7 +314,7 @@ function finishRecording() {
   // シェアテキスト更新
   updateShareText();
 
-  resumeBGM();
+  playSFXKakka();
   setState('result');
 
   // 大声なら画面を揺らす
@@ -581,14 +598,16 @@ function playAudio(url, btn) {
 
   const audio = new Audio(url);
   currentAudio = audio;
+  lowerBGM();
 
   audio.play().catch(err => {
     alert('再生に失敗しました：' + err.message);
     resetAudioBtn(btn);
+    restoreBGM();
   });
 
-  audio.onended = () => resetAudioBtn(btn);
-  audio.onerror = () => resetAudioBtn(btn);
+  audio.onended = () => { resetAudioBtn(btn); restoreBGM(); };
+  audio.onerror = () => { resetAudioBtn(btn); restoreBGM(); };
 }
 
 function resetAudioBtn(btn) {
