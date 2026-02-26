@@ -72,7 +72,7 @@ function playBGMLoop() {
   if (!bgm || !bgmUnlocked) return;
   bgm.currentTime = 0;
   bgm.play().catch(() => {});
-  bgmTimer = setTimeout(playBGMLoop, 6000);
+  bgmTimer = setTimeout(playBGMLoop, 5500);
 }
 
 function initBGM() {
@@ -97,7 +97,7 @@ function pauseBGM() {
 function resumeBGM() {
   if (!bgm || !bgmUnlocked) return;
   bgm.play().catch(() => {});
-  bgmTimer = setTimeout(playBGMLoop, 6000);
+  bgmTimer = setTimeout(playBGMLoop, 5500);
 }
 
 // ── 初期化 ────────────────────────────────────
