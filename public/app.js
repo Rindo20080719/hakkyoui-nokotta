@@ -63,8 +63,30 @@ function getDbComparison(db) {
   return 'ほぼ無音の部屋';
 }
 
+// ── BGM ───────────────────────────────────────
+let bgm = null;
+let bgmUnlocked = false;
+
+function initBGM() {
+  bgm = document.getElementById('bgmAudio');
+  if (!bgm) return;
+  bgm.volume = 0.35;
+  // ブラウザの自動再生制限のため、最初のクリックで開始
+  document.addEventListener('click', function unlockBGM() {
+    if (!bgmUnlocked) {
+      bgm.play().catch(() => {});
+      bgmUnlocked = true;
+    }
+    document.removeEventListener('click', unlockBGM);
+  }, { once: true });
+}
+
+function pauseBGM() { if (bgm) { bgm.pause(); } }
+function resumeBGM() { if (bgm && bgmUnlocked) { bgm.play().catch(() => {}); } }
+
 // ── 初期化 ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  initBGM();
   await checkAuth();
   await loadRankings();
   loadSeasonInfo();
@@ -140,6 +162,7 @@ async function startRecording() {
   dbSamples = [];
   countdown = 5;
 
+  pauseBGM();
   setState('recording');
   startCountdown();
   startAnalysis();
@@ -258,6 +281,7 @@ function finishRecording() {
   // シェアテキスト更新
   updateShareText();
 
+  resumeBGM();
   setState('result');
 
   // 大声なら画面を揺らす
@@ -580,42 +604,54 @@ function shareToX() {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-async function shareWithAudio() {
+function shareToLINE() {
   const text = buildShareText();
+  const url  = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
 
-  // Web Share API が使える場合（主にモバイル）
-  if (audioChunks.length > 0 && navigator.canShare) {
-    const mimeType = mediaRecorder?.mimeType || 'audio/webm';
-    const blob     = new Blob(audioChunks, { type: mimeType });
-    const file     = new File([blob], '発狂声.webm', { type: mimeType });
+async function copyShareText() {
+  const text = buildShareText();
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.querySelector('.btn-copy-share');
+    if (btn) { btn.textContent = '✅ コピーした！'; setTimeout(() => { btn.textContent = '📋 コピー'; }, 2000); }
+  } catch {
+    prompt('以下のテキストをコピーしてください：', buildShareText());
+  }
+}
 
-    if (navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          title: '発狂ーぃ のこった！',
-          text:  text,
-          files: [file]
-        });
-        return;
-      } catch (e) {
-        if (e.name === 'AbortError') return; // キャンセル
-        // 失敗した場合はフォールバックへ
-      }
-    }
+async function shareWithAudio() {
+  if (audioChunks.length === 0) {
+    alert('音声データがありません。録音後に試してください。');
+    return;
   }
 
-  // フォールバック：音声なしでテキストシェア
-  if (navigator.share) {
+  const mimeType = mediaRecorder?.mimeType || 'audio/webm';
+  const blob     = new Blob(audioChunks, { type: mimeType });
+  const file     = new File([blob], '発狂声.webm', { type: mimeType });
+
+  // モバイルでファイルシェアが使える場合
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ title: '発狂ーぃ のこった！', text });
+      await navigator.share({
+        title: '発狂ーぃ のこった！',
+        text:  buildShareText(),
+        files: [file]
+      });
       return;
     } catch (e) {
       if (e.name === 'AbortError') return;
     }
   }
 
-  // 最終フォールバック：X投稿
-  shareToX();
+  // フォールバック：ダウンロード
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href     = url;
+  a.download = '発狂声.webm';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ══════════════════════════════════════════════
