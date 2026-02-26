@@ -66,23 +66,39 @@ function getDbComparison(db) {
 // ── BGM ───────────────────────────────────────
 let bgm = null;
 let bgmUnlocked = false;
+let bgmTimer = null;
+
+function playBGMLoop() {
+  if (!bgm || !bgmUnlocked) return;
+  bgm.currentTime = 0;
+  bgm.play().catch(() => {});
+  bgmTimer = setTimeout(playBGMLoop, 6000);
+}
 
 function initBGM() {
   bgm = document.getElementById('bgmAudio');
   if (!bgm) return;
   bgm.volume = 0.35;
-  // ブラウザの自動再生制限のため、最初のクリックで開始
+  bgm.loop = false;
   document.addEventListener('click', function unlockBGM() {
     if (!bgmUnlocked) {
-      bgm.play().catch(() => {});
       bgmUnlocked = true;
+      playBGMLoop();
     }
     document.removeEventListener('click', unlockBGM);
   }, { once: true });
 }
 
-function pauseBGM() { if (bgm) { bgm.pause(); } }
-function resumeBGM() { if (bgm && bgmUnlocked) { bgm.play().catch(() => {}); } }
+function pauseBGM() {
+  if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
+  if (bgm) bgm.pause();
+}
+
+function resumeBGM() {
+  if (!bgm || !bgmUnlocked) return;
+  bgm.play().catch(() => {});
+  bgmTimer = setTimeout(playBGMLoop, 6000);
+}
 
 // ── 初期化 ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
