@@ -37,10 +37,37 @@ let lastDb       = 0;
 let dbSamples    = [];   // 5秒間のdBサンプル蓄積用
 let countdown    = 5;
 
+// ── dB比較データ ──────────────────────────────
+const DB_COMPARISONS = [
+  { db: 130, label: 'ジェットエンジン（超至近距離）' },
+  { db: 120, label: 'ロケット発射' },
+  { db: 115, label: 'ロックコンサート最前列' },
+  { db: 110, label: '飛行機の離陸' },
+  { db: 105, label: 'チェーンソー使用中' },
+  { db: 100, label: '電動ドリル（近距離）' },
+  { db: 95,  label: '地下鉄の車内' },
+  { db: 90,  label: 'カラオケ（近距離）' },
+  { db: 85,  label: 'バイクのエンジン' },
+  { db: 80,  label: '掃除機' },
+  { db: 75,  label: '電話の着信音' },
+  { db: 70,  label: '普通の会話' },
+  { db: 65,  label: '図書館の中' },
+  { db: 60,  label: '静かなオフィス' },
+  { db: 0,   label: 'ほぼ無音の部屋' },
+];
+
+function getDbComparison(db) {
+  for (const c of DB_COMPARISONS) {
+    if (db >= c.db) return c.label;
+  }
+  return 'ほぼ無音の部屋';
+}
+
 // ── 初期化 ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuth();
   await loadRankings();
+  loadSeasonInfo();
 });
 
 // ── 認証チェック ──────────────────────────────
@@ -228,6 +255,9 @@ function finishRecording() {
   document.getElementById('resultEstimate').innerHTML =
     `<span class="result-rank-label">${achieved}</span><br><span class="result-next-rank">${nextMsg}</span>`;
 
+  // シェアテキスト更新
+  updateShareText();
+
   setState('result');
 
   // 大声なら画面を揺らす
@@ -354,6 +384,11 @@ async function loadRankings() {
   }
 }
 
+function scrollToRanking() {
+  const el = document.getElementById('rankingSection');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
 function renderRankings(list) {
   const el = document.getElementById('rankingsList');
 
@@ -392,6 +427,37 @@ function renderRankings(list) {
   }).join('');
 }
 
+// ── シーズン情報表示 ──────────────────────────
+async function loadSeasonInfo() {
+  try {
+    const res  = await fetch('/api/season');
+    const data = await res.json();
+    if (!data.nextResetAt) return;
+
+    const el = document.getElementById('seasonInfo');
+    if (!el) return;
+
+    function updateTimer() {
+      const now  = new Date();
+      const diff = new Date(data.nextResetAt) - now;
+      if (diff <= 0) {
+        el.innerHTML = '<span class="season-reset-soon">まもなくリセット！</span>';
+        return;
+      }
+      const days  = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins  = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      el.innerHTML = `
+        <span class="season-num">シーズン ${data.seasonNumber}</span>
+        <span class="season-reset">リセットまで ${days}日 ${hours}時間 ${mins}分</span>
+      `;
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 60 * 1000); // 1分ごと更新
+  } catch {}
+}
+
 // dBで称号を決定（順位ではなく実力で決まる）
 const RANK_THRESHOLDS = [
   { label: '横綱',  db: 112 },
@@ -405,12 +471,6 @@ const RANK_THRESHOLDS = [
   { label: '序ノ口', db:  72 },
   { label: '見習い', db:   0 },
 ];
-
-function getRankLabel(rank) {
-  // 引数がdB値の場合（recordから呼ぶとき）
-  // 旧来の順位ベースのフォールバックも残す
-  return ''; // 使わない（getRankLabelByDb に統一）
-}
 
 function getRankLabelByDb(db) {
   for (const r of RANK_THRESHOLDS) {
@@ -487,6 +547,67 @@ function resetAudioBtn(btn) {
 }
 
 // ══════════════════════════════════════════════
+// シェア機能
+// ══════════════════════════════════════════════
+
+function buildShareText() {
+  const comparison = getDbComparison(lastDb);
+  const rank       = getRankLabelByDb(lastDb);
+  const siteUrl    = window.location.origin;
+  return `あなたの声は${lastDb.toFixed(1)}dB！これは${comparison}とほぼ同じです！称号：「${rank}」\nあなたも試してみて👉 ${siteUrl}\n#発狂ーぃのこった #発狂力測定`;
+}
+
+function updateShareText() {
+  const el = document.getElementById('shareTextPreview');
+  if (!el) return;
+  el.textContent = buildShareText();
+}
+
+function shareToX() {
+  const text = buildShareText();
+  const url  = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+async function shareWithAudio() {
+  const text = buildShareText();
+
+  // Web Share API が使える場合（主にモバイル）
+  if (audioChunks.length > 0 && navigator.canShare) {
+    const mimeType = mediaRecorder?.mimeType || 'audio/webm';
+    const blob     = new Blob(audioChunks, { type: mimeType });
+    const file     = new File([blob], '発狂声.webm', { type: mimeType });
+
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: '発狂ーぃ のこった！',
+          text:  text,
+          files: [file]
+        });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return; // キャンセル
+        // 失敗した場合はフォールバックへ
+      }
+    }
+  }
+
+  // フォールバック：音声なしでテキストシェア
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: '発狂ーぃ のこった！', text });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+
+  // 最終フォールバック：X投稿
+  shareToX();
+}
+
+// ══════════════════════════════════════════════
 // 認証UI
 // ══════════════════════════════════════════════
 function showLogin()    { document.getElementById('loginModal').classList.remove('hidden'); }
@@ -534,6 +655,8 @@ function showProfile() {
     </div>
   `).join('');
 
+  // プロフィールタブを表示
+  switchProfileTab('profile');
   document.getElementById('profileModal').classList.remove('hidden');
 }
 
@@ -731,4 +854,64 @@ async function logout() {
     updateAuthUI();
     await loadRankings();
   } catch {}
+}
+
+// ══════════════════════════════════════════════
+// プロフィールタブ切り替え
+// ══════════════════════════════════════════════
+function switchProfileTab(tab) {
+  const isProfile = (tab === 'profile');
+
+  document.getElementById('tabProfile').classList.toggle('active', isProfile);
+  document.getElementById('tabHistory').classList.toggle('active', !isProfile);
+
+  document.getElementById('profileTabContent').classList.toggle('hidden', !isProfile);
+  document.getElementById('profileTabFooter').classList.toggle('hidden', !isProfile);
+  document.getElementById('historyTabContent').classList.toggle('hidden', isProfile);
+  document.getElementById('historyTabFooter').classList.toggle('hidden', isProfile);
+
+  if (!isProfile) loadUserHistory();
+}
+
+// ══════════════════════════════════════════════
+// ユーザー個人履歴
+// ══════════════════════════════════════════════
+async function loadUserHistory() {
+  const el = document.getElementById('historyList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-msg">読み込み中...</div>';
+
+  try {
+    const res  = await fetch('/api/users/me/history');
+    const data = await res.json();
+    renderUserHistory(data);
+  } catch {
+    el.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+  }
+}
+
+function renderUserHistory(list) {
+  const el = document.getElementById('historyList');
+  if (!list.length) {
+    el.innerHTML = '<div class="no-rankings-msg">まだ記録がありません</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(r => {
+    const date     = new Date(r.createdAt).toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const badge    = getRankLabelByDb(r.decibel);
+    const audioBtn = r.hasAudio
+      ? `<button class="btn-audio" onclick="playAudio('${r.audioUrl}', this)">▶ 聴く</button>` : '';
+    return `
+      <div class="history-item">
+        <div class="history-badge">${badge}</div>
+        <div class="history-db">${r.decibel.toFixed(1)} <span class="history-db-unit">dB</span></div>
+        <div class="history-meta">
+          <span class="history-date">${date}</span>
+          <span class="history-season">S${r.seasonNumber}</span>
+        </div>
+        <div class="history-actions">${audioBtn}</div>
+      </div>
+    `;
+  }).join('');
 }
