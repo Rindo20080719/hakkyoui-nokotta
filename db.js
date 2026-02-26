@@ -77,6 +77,12 @@ async function deleteRanking(id) {
   return !error;
 }
 
+async function clearAudioFromHistory(audioFilename) {
+  await supabase.from('user_history')
+    .update({ audio_public: 0, audio_filename: null })
+    .eq('audio_filename', audioFilename);
+}
+
 // ── ユーザー個人履歴 ──────────────────────────────────────────
 async function addUserRecord(entry) {
   const { data, error } = await supabase
@@ -145,7 +151,7 @@ function _toSeasonShape(row) {
 module.exports = {
   supabase,
   findUserByName, findUserById, createUser, updateUserProfile,
-  getRankings, addRanking, findRankingById, deleteRanking,
+  getRankings, addRanking, findRankingById, deleteRanking, clearAudioFromHistory,
   addUserRecord, getUserRecords,
   getSeasonInfo, archiveAndResetRankings,
 };

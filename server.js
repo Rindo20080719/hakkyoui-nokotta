@@ -313,6 +313,7 @@ app.delete('/api/rankings/:id', requireAuth, async (req, res) => {
     // 音声ファイルも削除
     if (ranking.audio_filename) {
       await db.supabase.storage.from('audio').remove([ranking.audio_filename]).catch(() => {});
+      await db.clearAudioFromHistory(ranking.audio_filename);
     }
 
     await db.deleteRanking(id);
