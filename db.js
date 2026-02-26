@@ -1,92 +1,151 @@
 /**
- * db.js — JSONファイルベースの簡易データストア
- * SQLiteネイティブビルド不要。Node.jsのfsモジュールだけで動作する。
+ * db.js — Supabase (PostgreSQL + Storage) ベースのデータストア
  */
-const fs   = require('fs');
-const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-
-// ── 内部ヘルパー ──────────────────────────────────────────────
-function dbPath(name) { return path.join(DATA_DIR, `${name}.json`); }
-
-function read(name) {
-  const p = dbPath(name);
-  if (!fs.existsSync(p)) return { nextId: 1, items: [] };
-  try   { return JSON.parse(fs.readFileSync(p, 'utf8')); }
-  catch { return { nextId: 1, items: [] }; }
-}
-
-function write(name, data) {
-  fs.writeFileSync(dbPath(name), JSON.stringify(data, null, 2), 'utf8');
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 // ── ユーザー ──────────────────────────────────────────────────
-function findUserByName(username) {
-  return read('users').items.find(u => u.username === username) || null;
+async function findUserByName(username) {
+  const { data } = await supabase
+    .from('users').select('*').eq('username', username).maybeSingle();
+  return data || null;
 }
 
-function findUserById(id) {
-  return read('users').items.find(u => u.id === id) || null;
+async function findUserById(id) {
+  const { data } = await supabase
+    .from('users').select('*').eq('id', id).maybeSingle();
+  return data || null;
 }
 
-function createUser(username, passwordHash) {
-  const db = read('users');
-  if (db.items.find(u => u.username === username)) {
+async function createUser(username, passwordHash) {
+  const existing = await findUserByName(username);
+  if (existing) {
     const err = new Error('UNIQUE constraint failed'); err.code = 'UNIQUE'; throw err;
   }
-  const user = {
-    id: db.nextId++, username, password_hash: passwordHash,
-    avatar: '力', avatar_color: '#c0392b', catchphrase: '',
-    created_at: new Date().toISOString()
-  };
-  db.items.push(user);
-  write('users', db);
-  return user;
+  const { data, error } = await supabase.from('users').insert({
+    username,
+    password_hash: passwordHash,
+    avatar: '力',
+    avatar_color: '#c0392b',
+    catchphrase: '',
+    avatar_image: '',
+  }).select().single();
+  if (error) throw error;
+  return data;
 }
 
-function updateUserProfile(id, { avatar, avatarColor, catchphrase, avatarImage }) {
-  const db  = read('users');
-  const idx = db.items.findIndex(u => u.id === id);
-  if (idx === -1) return null;
-  if (avatar       !== undefined) db.items[idx].avatar        = avatar;
-  if (avatarColor  !== undefined) db.items[idx].avatar_color  = avatarColor;
-  if (catchphrase  !== undefined) db.items[idx].catchphrase   = catchphrase;
-  if (avatarImage  !== undefined) db.items[idx].avatar_image  = avatarImage;
-  write('users', db);
-  return db.items[idx];
+async function updateUserProfile(id, { avatar, avatarColor, catchphrase, avatarImage }) {
+  const updates = {};
+  if (avatar      !== undefined) updates.avatar       = avatar;
+  if (avatarColor !== undefined) updates.avatar_color = avatarColor;
+  if (catchphrase !== undefined) updates.catchphrase  = catchphrase;
+  if (avatarImage !== undefined) updates.avatar_image = avatarImage;
+  const { data, error } = await supabase
+    .from('users').update(updates).eq('id', id).select().single();
+  if (error) throw error;
+  return data || null;
 }
 
 // ── ランキング ────────────────────────────────────────────────
-function getRankings(limit = 100) {
-  return read('rankings').items
-    .sort((a, b) => b.decibel - a.decibel)
-    .slice(0, limit);
+async function getRankings(limit = 100) {
+  const { data } = await supabase
+    .from('rankings').select('*')
+    .order('decibel', { ascending: false })
+    .limit(limit);
+  return data || [];
 }
 
-function addRanking(entry) {
-  const db   = read('rankings');
-  const item = { id: db.nextId++, ...entry, created_at: new Date().toISOString() };
-  db.items.push(item);
-  write('rankings', db);
-  return item;
+async function addRanking(entry) {
+  const { data, error } = await supabase
+    .from('rankings').insert(entry).select().single();
+  if (error) throw error;
+  return data;
 }
 
-function findRankingById(id) {
-  return read('rankings').items.find(r => r.id === id) || null;
+async function findRankingById(id) {
+  const { data } = await supabase
+    .from('rankings').select('*').eq('id', id).maybeSingle();
+  return data || null;
 }
 
-function deleteRanking(id) {
-  const db  = read('rankings');
-  const idx = db.items.findIndex(r => r.id === id);
-  if (idx === -1) return false;
-  db.items.splice(idx, 1);
-  write('rankings', db);
-  return true;
+async function deleteRanking(id) {
+  const { error } = await supabase.from('rankings').delete().eq('id', id);
+  return !error;
+}
+
+// ── ユーザー個人履歴 ──────────────────────────────────────────
+async function addUserRecord(entry) {
+  const { data, error } = await supabase
+    .from('user_history').insert(entry).select().single();
+  if (error) throw error;
+  return data;
+}
+
+async function getUserRecords(userId, limit = 50) {
+  const { data } = await supabase
+    .from('user_history').select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  return data || [];
+}
+
+// ── シーズン管理 ──────────────────────────────────────────────
+async function getSeasonInfo() {
+  const { data } = await supabase
+    .from('season').select('*')
+    .order('id', { ascending: false })
+    .limit(1).maybeSingle();
+
+  if (!data) {
+    // 初回: シーズン1を作成
+    const now = new Date();
+    const info = {
+      season_number: 1,
+      started_at:    now.toISOString(),
+      next_reset_at: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    const { data: created } = await supabase.from('season').insert(info).select().single();
+    return created ? _toSeasonShape(created) : null;
+  }
+  return _toSeasonShape(data);
+}
+
+async function archiveAndResetRankings() {
+  const season = await getSeasonInfo();
+  if (!season) return null;
+
+  // ランキングを全削除（user_history に個人記録は残る）
+  await supabase.from('rankings').delete().gte('id', 0);
+
+  // 新シーズン開始
+  const now = new Date();
+  const newSeasonData = {
+    season_number: season.seasonNumber + 1,
+    started_at:    now.toISOString(),
+    next_reset_at: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+  };
+  const { data } = await supabase.from('season').insert(newSeasonData).select().single();
+  return data ? _toSeasonShape(data) : null;
+}
+
+// DB の snake_case → 従来の camelCase 形式に変換
+function _toSeasonShape(row) {
+  return {
+    seasonNumber: row.season_number,
+    startedAt:    row.started_at,
+    nextResetAt:  row.next_reset_at,
+  };
 }
 
 module.exports = {
+  supabase,
   findUserByName, findUserById, createUser, updateUserProfile,
-  getRankings, addRanking, findRankingById, deleteRanking
+  getRankings, addRanking, findRankingById, deleteRanking,
+  addUserRecord, getUserRecords,
+  getSeasonInfo, archiveAndResetRankings,
 };
