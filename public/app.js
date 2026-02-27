@@ -171,8 +171,8 @@ async function showIntro() {
     function showImg(src) {
       img.style.animation = 'none';
       img.src = src;
-      void img.offsetWidth; // reflow でアニメーションリセット
-      img.style.animation = '';
+      void img.offsetWidth;
+      img.style.animation = 'intro-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both';
     }
 
     document.body.classList.add('intro-active');
