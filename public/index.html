@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body data-state="start">
 
   <!-- ロゴ背景 -->
   <div class="bg-logo"></div>
@@ -37,11 +37,6 @@
       </div>
     </nav>
 
-    <!-- 中央：ロゴ -->
-    <div class="header-logo">
-      <img src="images/logo.png" alt="発狂ーぃ のこった！" class="logo-img">
-    </div>
-
     <!-- 右：世界番付ボタン -->
     <div class="header-right">
       <button class="btn btn-outline" onclick="scrollToRanking()">世界番付</button>
@@ -53,12 +48,21 @@
 
   <!-- BGM -->
 <audio id="sfxKakka" src="audio/kakka.mp3" preload="auto"></audio>
+<audio id="sfxStart" src="audio/taiko-renda4.wav" preload="auto" loop></audio>
 
   <!-- メインコンテンツ -->
   <main class="arena">
 
+      <!-- ═══ START STATE ═══ -->
+      <section id="startState" class="game-state">
+        <div class="start-screen">
+          <img src="images/logo.png" alt="発狂ーぃ のこった！" class="start-logo">
+          <button class="btn-start" onclick="goToGame()">土俵へ上がる</button>
+        </div>
+      </section>
+
       <!-- ═══ IDLE STATE ═══ -->
-      <section id="idleState" class="game-state">
+      <section id="idleState" class="game-state hidden">
         <div class="dohyo-stage">
           <div class="stage-shadow"></div>
           <div class="dohyo-wrap">
@@ -72,9 +76,6 @@
             <div class="dohyo" id="dohyoBtn" onclick="startRecording()" role="button" tabindex="0"
                  onkeypress="if(event.key==='Enter')startRecording()">
               <div class="dohyo-surface">
-                <!-- 仕切り線 -->
-                <div class="shikiri shikiri-l"></div>
-                <div class="shikiri shikiri-r"></div>
                 <!-- ボタンテキスト -->
                 <div class="dohyo-label">
                   <span class="dohyo-sub">はっけよい</span>

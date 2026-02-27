@@ -3,7 +3,7 @@
    ════════════════════════════════════════════ */
 
 // ── 状態変数 ──────────────────────────────────
-let currentState = 'idle';     // idle / recording / result / submit
+let currentState = 'start';    // start / idle / recording / result / submit
 let currentUser  = null;
 
 // ── アバター設定 ──────────────────────────────
@@ -92,6 +92,11 @@ async function initBGM() {
       bgmUnlocked = true;
       bgmCtx.resume().then(() => _startBGMSource(0));
     }
+    // スタート画面BGMも初回クリックで再生
+    if (currentState === 'start') {
+      const sfxStart = document.getElementById('sfxStart');
+      if (sfxStart && sfxStart.paused) sfxStart.play().catch(() => {});
+    }
     document.removeEventListener('click', unlockBGM);
   }, { once: true });
 }
@@ -155,6 +160,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   await checkAuth();
   await loadRankings();
   loadSeasonInfo();
+  setState('start');
+  // スタート画面BGMを自動再生試行（ブロックされても後でクリック時に再生）
+  const sfxStart = document.getElementById('sfxStart');
+  if (sfxStart) sfxStart.play().catch(() => {});
 });
 
 // ── 認証チェック ──────────────────────────────
@@ -493,10 +502,17 @@ async function submitRanking() {
 // ══════════════════════════════════════════════
 // ステート管理
 // ══════════════════════════════════════════════
+function goToGame() {
+  const sfxStart = document.getElementById('sfxStart');
+  if (sfxStart) { sfxStart.pause(); sfxStart.currentTime = 0; }
+  setState('idle');
+}
+
 function setState(newState) {
   currentState = newState;
+  document.body.dataset.state = newState;
 
-  ['idle', 'recording', 'result', 'submit'].forEach(s => {
+  ['start', 'idle', 'recording', 'result', 'submit'].forEach(s => {
     const el = document.getElementById(`${s}State`);
     if (el) el.classList.toggle('hidden', s !== newState);
   });

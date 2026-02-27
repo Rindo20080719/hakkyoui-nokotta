@@ -93,7 +93,7 @@ body {
 .main-header {
   position: relative; z-index: 10;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
   padding: 8px 24px;
   background: linear-gradient(180deg, #0d0300 0%, var(--wood-dark) 100%);
@@ -124,6 +124,9 @@ body {
   transition: filter 0.3s;
 }
 .logo-img:hover { filter: drop-shadow(0 0 20px rgba(212,175,55,0.8)); }
+
+/* スタート画面では背景ロゴを非表示 */
+body[data-state="start"] .bg-logo { display: none; }
 
 /* ロゴ背景 */
 .bg-logo {
@@ -351,12 +354,13 @@ body {
   position: relative; z-index: 5;
 }
 .dohyo-sub {
-  font-size: 14px; letter-spacing: 6px;
-  color: rgba(26,8,0,0.7);
+  font-size: 18px; letter-spacing: 6px;
+  color: rgba(26,8,0,0.75);
   font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  font-weight: 900;
 }
 .dohyo-main {
-  font-size: 38px; font-weight: 900; letter-spacing: 4px;
+  font-size: 50px; font-weight: 900; letter-spacing: 4px;
   color: var(--text-dark);
   font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   text-shadow: 2px 2px 4px rgba(255,255,255,0.4), -1px -1px 3px rgba(0,0,0,0.3);
@@ -1050,14 +1054,13 @@ body.shake { animation: screen-shake 0.55s ease; }
 
   /* ヘッダー：モバイルで縦積み */
   .main-header {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
     padding: 10px 14px;
     gap: 8px;
   }
   .header-auth  { grid-column: 1; }
-  .header-logo  { grid-column: 2; justify-content: flex-end; }
-  .header-right { display: none; } /* モバイルでは番付ボタン非表示（画面内に見える） */
+  .header-right { grid-column: 2; }
 
   .dohyo, .dohyo-wrap { width: 260px; height: 260px; }
   .dohyo-main { font-size: 28px; }
@@ -1186,4 +1189,51 @@ body.intro-active .header-auth { pointer-events: none; }
   0%   { transform: scale(3.8); opacity: 0; filter: blur(14px); }
   55%  { transform: scale(0.9); opacity: 1; filter: blur(0); }
   100% { transform: scale(1);   opacity: 1; filter: blur(0); }
+}
+
+/* ════════════════════════
+   START STATE
+════════════════════════ */
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 48px;
+  padding: 60px 20px;
+  min-height: 60vh;
+}
+
+.start-logo {
+  width: min(80vw, 480px);
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px rgba(212,175,55,0.6));
+  animation: start-logo-float 3s ease-in-out infinite;
+}
+
+@keyframes start-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+.btn-start {
+  font-size: 28px;
+  font-weight: 900;
+  font-family: 'Hiragino Mincho ProN', serif;
+  letter-spacing: 6px;
+  color: var(--cream);
+  background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
+  border: 3px solid var(--gold);
+  padding: 20px 60px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6), 0 0 20px rgba(212,175,55,0.3);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-start:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.7), 0 0 30px rgba(212,175,55,0.5);
+}
+.btn-start:active {
+  transform: translateY(1px);
 }
