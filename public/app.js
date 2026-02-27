@@ -90,7 +90,12 @@ async function initBGM() {
   document.addEventListener('click', function unlockBGM() {
     if (!bgmUnlocked) {
       bgmUnlocked = true;
-      bgmCtx.resume().then(() => _startBGMSource(0));
+      bgmCtx.resume().then(() => {
+        // スタート画面中はメインBGMを流さない（goToGame()で開始する）
+        if (currentState !== 'start') {
+          _startBGMSource(0);
+        }
+      });
     }
     // スタート画面BGMも初回クリックで再生
     if (currentState === 'start') {
@@ -523,6 +528,11 @@ function goToGame() {
   if (sfxStart) { sfxStart.pause(); sfxStart.currentTime = 0; }
   const sfxHyoshigi = document.getElementById('sfxHyoshigi');
   if (sfxHyoshigi) { sfxHyoshigi.currentTime = 0; sfxHyoshigi.play().catch(() => {}); }
+
+  // スタート画面で既にクリック済みでメインBGMがまだ未開始の場合に起動
+  if (bgmUnlocked && !bgmSource) {
+    bgmCtx.resume().then(() => _startBGMSource(0));
+  }
 
   const overlay = document.getElementById('transitionOverlay');
   overlay.classList.add('active');
