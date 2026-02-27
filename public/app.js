@@ -4,6 +4,7 @@
 
 // ── 状態変数 ──────────────────────────────────
 let currentState = 'start';    // start / idle / recording / result / submit
+let lastRank     = null;       // 番付登録後の順位
 let currentUser  = null;
 
 // ── アバター設定 ──────────────────────────────
@@ -291,6 +292,7 @@ async function startRecording() {
   peakDb    = 0;
   dbSamples = [];
   countdown = 5;
+  lastRank  = null;
 
   pauseBGM();
   setState('recording');
@@ -505,9 +507,10 @@ async function submitRanking() {
                     : label === '序ノ口' ? '序ノ口！門を叩いた！'
                     : '見習い…もっと発狂しろ！';
       alert(`登録完了！\n\n世界ランキング ${data.rank} 位！\n${rankMsg}`);
-      audioChunks = [];
+      lastRank = data.rank;    // ランクを保存してシェアテキストに反映
+      updateShareText();
       await loadRankings();
-      setState('idle');
+      setState('result');      // 結果画面に戻ってランク入りでシェアできるように
     } else {
       alert('登録に失敗しました：' + data.error);
     }
@@ -710,6 +713,7 @@ function playAudio(url, btn) {
     currentAudio.pause();
     currentAudio.currentTime = 0;
     resetAudioBtn(currentAudioBtn);
+    restoreBGM();
     if (currentAudioBtn === btn) { currentAudio = null; currentAudioBtn = null; return; }
   }
 
@@ -746,9 +750,10 @@ function resetAudioBtn(btn) {
 
 function buildShareText() {
   const comparison = getDbComparison(lastDb);
-  const rank       = getRankLabelByDb(lastDb);
+  const rankLabel  = getRankLabelByDb(lastDb);
   const siteUrl    = window.location.origin;
-  return `あなたの声は${lastDb.toFixed(1)}dB！これは${comparison}とほぼ同じです！称号：「${rank}」\nあなたも試してみて👉 ${siteUrl}\n#発狂ーぃのこった #発狂力測定`;
+  const rankPart   = lastRank ? `世界番付 ${lastRank} 位！ ` : '';
+  return `あなたの声は${lastDb.toFixed(1)}dB！${rankPart}これは${comparison}とほぼ同じです！称号：「${rankLabel}」\nあなたも試してみて👉 ${siteUrl}\n#発狂ーぃのこった #発狂力測定`;
 }
 
 function updateShareText() {
