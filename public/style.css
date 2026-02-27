@@ -1139,6 +1139,21 @@ body.shake { animation: screen-shake 0.55s ease; }
   margin-top: 30px;
 }
 
+/* ── 画面切り替えオーバーレイ ── */
+.transition-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 80;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.transition-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
 /* ── イントロカウントダウンオーバーレイ ── */
 .intro-overlay {
   position: fixed;

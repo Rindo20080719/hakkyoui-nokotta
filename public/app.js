@@ -151,7 +151,15 @@ function playSFXKakka() {
   pauseBGM();
   sfx.currentTime = 0;
   sfx.play().catch(() => {});
-  sfx.onended = () => resumeBGM();
+  sfx.onended = () => {
+    if (!bgmUnlocked || !bgmBuffer) return;
+    bgmGain.gain.cancelScheduledValues(bgmCtx.currentTime);
+    bgmGain.gain.setValueAtTime(0, bgmCtx.currentTime);
+    bgmCtx.resume().then(() => {
+      _startBGMSource(bgmOffset);
+      fadeBGM(0.55, 3.5); // 3.5秒かけて元の音量へ
+    });
+  };
 }
 
 // ── 初期化 ────────────────────────────────────
@@ -514,7 +522,13 @@ function goToGame() {
   if (sfxStart) { sfxStart.pause(); sfxStart.currentTime = 0; }
   const sfxHyoshigi = document.getElementById('sfxHyoshigi');
   if (sfxHyoshigi) { sfxHyoshigi.currentTime = 0; sfxHyoshigi.play().catch(() => {}); }
-  setState('idle');
+
+  const overlay = document.getElementById('transitionOverlay');
+  overlay.classList.add('active');
+  setTimeout(() => {
+    setState('idle');
+    overlay.classList.remove('active');
+  }, 450);
 }
 
 function setState(newState) {
