@@ -1220,7 +1220,7 @@ body.intro-active .header-auth { pointer-events: none; }
 }
 
 .start-logo {
-  width: min(80vw, 480px);
+  width: min(90vw, 640px);
   object-fit: contain;
   filter: drop-shadow(0 0 30px rgba(212,175,55,0.6));
   animation: start-logo-float 3s ease-in-out infinite;
