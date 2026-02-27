@@ -293,6 +293,8 @@ async function startRecording() {
   dbSamples = [];
   countdown = 5;
   lastRank  = null;
+  const btnSubmit = document.getElementById('btnSubmitRanking');
+  if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = '番付に名を刻む！'; }
 
   pauseBGM();
   setState('recording');
@@ -507,10 +509,12 @@ async function submitRanking() {
                     : label === '序ノ口' ? '序ノ口！門を叩いた！'
                     : '見習い…もっと発狂しろ！';
       alert(`登録完了！\n\n世界ランキング ${data.rank} 位！\n${rankMsg}`);
-      lastRank = data.rank;    // ランクを保存してシェアテキストに反映
-      updateShareText();
+      lastRank = data.rank;
       await loadRankings();
-      setState('result');      // 結果画面に戻ってランク入りでシェアできるように
+      setState('result');
+      updateShareText();       // setState後に更新してランクを確実に反映
+      const btnSubmit = document.getElementById('btnSubmitRanking');
+      if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = '登録済みです'; }
     } else {
       alert('登録に失敗しました：' + data.error);
     }

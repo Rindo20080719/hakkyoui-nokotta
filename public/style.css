@@ -226,6 +226,7 @@ body[data-state="start"] #startState { padding: 0; min-height: 0; }
 
 .btn-sm  { padding: 6px 14px; font-size: 13px; }
 .btn-large { padding: 16px 48px; font-size: 18px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
 /* ════ アリーナ（メイン） ════ */
 .arena {
