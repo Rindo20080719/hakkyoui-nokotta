@@ -175,6 +175,7 @@ async function showIntro() {
       img.style.animation = '';
     }
 
+    document.body.classList.add('intro-active');
     showImg('images/intro1.png');
     overlay.classList.remove('intro-hidden');
 
@@ -182,6 +183,7 @@ async function showIntro() {
       showImg('images/intro2.png');
       setTimeout(() => {
         overlay.classList.add('intro-hidden');
+        document.body.classList.remove('intro-active');
         resolve();
       }, 2000);
     }, 3000);

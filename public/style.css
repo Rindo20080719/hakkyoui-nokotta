@@ -38,6 +38,8 @@
   background-repeat: repeat-x;
   animation: taremaku-scroll 12s linear infinite;
   flex-shrink: 0;
+  position: relative;
+  z-index: 11;
 }
 @keyframes taremaku-scroll {
   from { background-position: 0 0; }
@@ -1139,12 +1141,17 @@ body.shake { animation: screen-shake 0.55s ease; }
   position: fixed;
   inset: 0;
   background: #1e0a00;
-  z-index: 9999;
+  z-index: 9;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .intro-hidden { display: none !important; }
+
+/* イントロ中：認証ボタンを無効化（見た目はそのまま） */
+body.intro-active .header-auth {
+  pointer-events: none;
+}
 .intro-img {
   max-width: 90vw;
   max-height: 80vh;
