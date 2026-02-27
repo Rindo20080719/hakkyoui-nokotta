@@ -76,7 +76,7 @@ let bgmStartAt  = 0;
 async function initBGM() {
   bgmCtx  = new (window.AudioContext || window.webkitAudioContext)();
   bgmGain = bgmCtx.createGain();
-  bgmGain.gain.value = 0.35;
+  bgmGain.gain.value = 0.55;
   bgmGain.connect(bgmCtx.destination);
 
   try {
@@ -95,7 +95,7 @@ async function initBGM() {
     // スタート画面BGMも初回クリックで再生
     if (currentState === 'start') {
       const sfxStart = document.getElementById('sfxStart');
-      if (sfxStart && sfxStart.paused) sfxStart.play().catch(() => {});
+      if (sfxStart && sfxStart.paused) { sfxStart.volume = 0.35; sfxStart.play().catch(() => {}); }
     }
     document.removeEventListener('click', unlockBGM);
   }, { once: true });
@@ -125,7 +125,7 @@ function resumeBGM() {
   if (!bgmUnlocked || !bgmPaused) return;
   if (bgmGain) {
     bgmGain.gain.cancelScheduledValues(bgmCtx.currentTime);
-    bgmGain.gain.value = 0.35;
+    bgmGain.gain.value = 0.55;
   }
   bgmCtx.resume().then(() => _startBGMSource(bgmOffset));
 }
@@ -135,7 +135,7 @@ function lowerBGM() {
 }
 
 function restoreBGM() {
-  if (bgmGain) bgmGain.gain.value = 0.35;
+  if (bgmGain) bgmGain.gain.value = 0.55;
 }
 
 function fadeBGM(targetVol, durationSec) {
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setState('start');
   // スタート画面BGMを自動再生試行（ブロックされても後でクリック時に再生）
   const sfxStart = document.getElementById('sfxStart');
-  if (sfxStart) sfxStart.play().catch(() => {});
+  if (sfxStart) { sfxStart.volume = 0.35; sfxStart.play().catch(() => {}); }
 });
 
 // ── 認証チェック ──────────────────────────────
@@ -217,10 +217,16 @@ async function showIntro() {
       numEl.style.animation = 'intro-num-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both';
     }
 
+    function playKotsuzumi() {
+      const sfx = document.getElementById('sfxKotsuzumi');
+      if (sfx) { sfx.currentTime = 0; sfx.play().catch(() => {}); }
+    }
+
     fadeBGM(0, 2.8);
     document.body.classList.add('intro-active');
     overlay.classList.remove('intro-hidden');
     showNum(3);
+    playKotsuzumi();
 
     let n = 3;
     const timer = setInterval(() => {
@@ -232,6 +238,7 @@ async function showIntro() {
         resolve();
       } else {
         showNum(n);
+        playKotsuzumi();
       }
     }, 1000);
   });
@@ -505,6 +512,8 @@ async function submitRanking() {
 function goToGame() {
   const sfxStart = document.getElementById('sfxStart');
   if (sfxStart) { sfxStart.pause(); sfxStart.currentTime = 0; }
+  const sfxHyoshigi = document.getElementById('sfxHyoshigi');
+  if (sfxHyoshigi) { sfxHyoshigi.currentTime = 0; sfxHyoshigi.play().catch(() => {}); }
   setState('idle');
 }
 
