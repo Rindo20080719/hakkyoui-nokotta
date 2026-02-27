@@ -481,8 +481,14 @@ async function loadRankings() {
 }
 
 function scrollToRanking() {
-  const el = document.getElementById('rankingSection');
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('rankingOverlay').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  loadRankings();
+}
+
+function closeRankingOverlay() {
+  document.getElementById('rankingOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 function renderRankings(list) {

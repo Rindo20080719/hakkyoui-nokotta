@@ -341,19 +341,16 @@ body {
 
 /* ボタンラベル */
 .dohyo-label {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
   position: relative; z-index: 5;
 }
-.dohyo-sub {
-  font-size: 14px; letter-spacing: 6px;
-  color: rgba(26,8,0,0.7);
-  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-}
-.dohyo-main {
-  font-size: 38px; font-weight: 900; letter-spacing: 4px;
-  color: var(--text-dark);
-  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-  text-shadow: 2px 2px 4px rgba(255,255,255,0.4), -1px -1px 3px rgba(0,0,0,0.3);
+.dohyo-label img {
+  max-width: 185px;
+  max-height: 72px;
+  object-fit: contain;
+  filter: drop-shadow(2px 3px 6px rgba(0,0,0,0.7));
+  pointer-events: none;
+  user-select: none;
 }
 
 .stage-hint {
@@ -1080,6 +1077,54 @@ body.shake { animation: screen-shake 0.55s ease; }
   .ranking-item { grid-template-columns: 40px 1fr 90px; }
   .rank-badge { display: none; }
   .ranking-title { font-size: 22px; letter-spacing: 4px; }
+}
+
+/* ════════════════════════
+   世界番付フルページオーバーレイ
+════════════════════════ */
+.ranking-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: #5c3317;
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0px, transparent 4px,
+      rgba(255,255,255,0.015) 4px, rgba(255,255,255,0.015) 5px
+    ),
+    repeating-linear-gradient(0deg,
+      transparent 0px, transparent 40px,
+      rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 41px
+    );
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.ranking-overlay-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(180deg, #0d0300 0%, var(--wood-dark) 100%);
+  border-bottom: 2px solid var(--gold);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+
+.ranking-overlay-close-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 24px;
+}
+
+.ranking-overlay-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+  width: 100%;
+}
+
+.ranking-overlay .ranking-section {
+  margin-top: 30px;
 }
 
 /* ── イントロオーバーレイ ── */

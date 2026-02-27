@@ -75,10 +75,10 @@
                 <!-- 仕切り線 -->
                 <div class="shikiri shikiri-l"></div>
                 <div class="shikiri shikiri-r"></div>
-                <!-- ボタンテキスト -->
+                <!-- ボタン画像 -->
                 <div class="dohyo-label">
-                  <span class="dohyo-sub">はっけよい</span>
-                  <span class="dohyo-main">発狂する</span>
+                  <img src="images/intro1.png" alt="発狂ぃ">
+                  <img src="images/intro2.png" alt="のこった！">
                 </div>
               </div>
             </div>
@@ -197,21 +197,30 @@
         </div>
       </section>
 
-      <!-- ═══ 世界番付（常に表示） ═══ -->
+    </main>
+
+  <!-- ════ 世界番付フルページオーバーレイ ════ -->
+  <div id="rankingOverlay" class="ranking-overlay hidden">
+    <div class="ranking-overlay-header">
+      <div class="taremaku-banner"></div>
+      <div class="ranking-overlay-close-bar">
+        <button class="btn btn-outline btn-sm" onclick="closeRankingOverlay()">✕ 閉じる</button>
+      </div>
+    </div>
+    <div class="ranking-overlay-inner">
       <section id="rankingSection" class="ranking-section">
         <div class="ranking-header">
           <div class="ranking-header-deco"></div>
           <h2 class="ranking-title">世界番付</h2>
           <div class="ranking-header-deco"></div>
         </div>
-        <!-- シーズン情報 -->
         <div id="seasonInfo" class="season-info"></div>
         <div id="rankingsList" class="rankings-list">
           <div class="loading-msg">読み込み中...</div>
         </div>
       </section>
-
-    </main>
+    </div>
+  </div>
 
   <!-- ════ ログインモーダル ════ -->
   <div id="loginModal" class="modal-overlay hidden" onclick="closeOnOverlay(event,'loginModal')">
