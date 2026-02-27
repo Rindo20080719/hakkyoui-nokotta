@@ -518,6 +518,7 @@ async function submitRanking() {
 // ステート管理
 // ══════════════════════════════════════════════
 function goToGame() {
+  currentState = 'idle'; // unlockBGMがsfxStartを再起動しないよう先に変更
   const sfxStart = document.getElementById('sfxStart');
   if (sfxStart) { sfxStart.pause(); sfxStart.currentTime = 0; }
   const sfxHyoshigi = document.getElementById('sfxHyoshigi');
