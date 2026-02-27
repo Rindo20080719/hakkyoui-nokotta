@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>発狂ーぃ のこった！</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -51,8 +52,7 @@
   <div class="taremaku-banner"></div>
 
   <!-- BGM -->
-  <audio id="bgmAudio" src="audio/bgm.m4a" preload="auto"></audio>
-  <audio id="sfxKakka" src="audio/kakka.mp3" preload="auto"></audio>
+<audio id="sfxKakka" src="audio/kakka.mp3" preload="auto"></audio>
 
   <!-- メインコンテンツ -->
   <main class="arena">
@@ -369,9 +369,13 @@
     </div>
   </div>
 
-  <!-- イントロオーバーレイ -->
+  <!-- イントロカウントダウンオーバーレイ -->
   <div id="introOverlay" class="intro-overlay intro-hidden">
-    <img id="introImg" src="" alt="" class="intro-img">
+    <div class="intro-cd-wrap">
+      <div class="intro-cd-deco"></div>
+      <div id="introCount" class="intro-cd-num"></div>
+      <div class="intro-cd-deco"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>

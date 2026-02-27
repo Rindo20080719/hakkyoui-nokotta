@@ -63,39 +63,81 @@ function getDbComparison(db) {
   return 'ほぼ無音の部屋';
 }
 
-// ── BGM ───────────────────────────────────────
-let bgm = null;
+// ── BGM (Web Audio API でギャップレスループ) ────
+let bgmCtx      = null;
+let bgmBuffer   = null;
+let bgmSource   = null;
+let bgmGain     = null;
 let bgmUnlocked = false;
+let bgmPaused   = false;
+let bgmOffset   = 0;
+let bgmStartAt  = 0;
 
-function initBGM() {
-  bgm = document.getElementById('bgmAudio');
-  if (!bgm) return;
-  bgm.volume = 0.35;
-  bgm.loop = true;
+async function initBGM() {
+  bgmCtx  = new (window.AudioContext || window.webkitAudioContext)();
+  bgmGain = bgmCtx.createGain();
+  bgmGain.gain.value = 0.35;
+  bgmGain.connect(bgmCtx.destination);
+
+  try {
+    const res = await fetch('audio/bgm.wav');
+    const buf = await res.arrayBuffer();
+    bgmBuffer  = await bgmCtx.decodeAudioData(buf);
+  } catch (e) {
+    console.warn('BGM load failed', e);
+  }
+
   document.addEventListener('click', function unlockBGM() {
     if (!bgmUnlocked) {
       bgmUnlocked = true;
-      bgm.play().catch(() => {});
+      bgmCtx.resume().then(() => _startBGMSource(0));
     }
     document.removeEventListener('click', unlockBGM);
   }, { once: true });
 }
 
+function _startBGMSource(offset) {
+  if (!bgmBuffer) return;
+  if (bgmSource) { try { bgmSource.stop(); } catch (_) {} bgmSource = null; }
+  bgmSource = bgmCtx.createBufferSource();
+  bgmSource.buffer = bgmBuffer;
+  bgmSource.loop   = true;
+  bgmSource.connect(bgmGain);
+  bgmSource.start(0, offset % bgmBuffer.duration);
+  bgmStartAt = bgmCtx.currentTime - offset;
+  bgmPaused  = false;
+}
+
 function pauseBGM() {
-  if (bgm) bgm.pause();
+  if (!bgmSource || bgmPaused) return;
+  bgmOffset = bgmCtx.currentTime - bgmStartAt;
+  try { bgmSource.stop(); } catch (_) {}
+  bgmSource = null;
+  bgmPaused = true;
 }
 
 function resumeBGM() {
-  if (!bgm || !bgmUnlocked) return;
-  bgm.play().catch(() => {});
+  if (!bgmUnlocked || !bgmPaused) return;
+  if (bgmGain) {
+    bgmGain.gain.cancelScheduledValues(bgmCtx.currentTime);
+    bgmGain.gain.value = 0.35;
+  }
+  bgmCtx.resume().then(() => _startBGMSource(bgmOffset));
 }
 
 function lowerBGM() {
-  if (bgm) bgm.volume = 0.08;
+  if (bgmGain) bgmGain.gain.value = 0.08;
 }
 
 function restoreBGM() {
-  if (bgm) bgm.volume = 0.35;
+  if (bgmGain) bgmGain.gain.value = 0.35;
+}
+
+function fadeBGM(targetVol, durationSec) {
+  if (!bgmGain || !bgmCtx) return;
+  bgmGain.gain.cancelScheduledValues(bgmCtx.currentTime);
+  bgmGain.gain.setValueAtTime(bgmGain.gain.value, bgmCtx.currentTime);
+  bgmGain.gain.linearRampToValueAtTime(targetVol, bgmCtx.currentTime + durationSec);
 }
 
 function playSFXKakka() {
@@ -156,27 +198,33 @@ function renderAvatarBadge(id, avatar, color, sizeClass, imageUrl) {
 async function showIntro() {
   return new Promise(resolve => {
     const overlay = document.getElementById('introOverlay');
-    const img     = document.getElementById('introImg');
+    const numEl   = document.getElementById('introCount');
 
-    function showImg(src) {
-      img.style.animation = 'none';
-      img.src = src;
-      void img.offsetWidth;
-      img.style.animation = 'intro-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both';
+    function showNum(n) {
+      numEl.textContent     = n;
+      numEl.className       = 'intro-cd-num' + (n === 1 ? ' final' : '');
+      numEl.style.animation = 'none';
+      void numEl.offsetWidth;
+      numEl.style.animation = 'intro-num-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both';
     }
 
+    fadeBGM(0, 2.8);
     document.body.classList.add('intro-active');
-    showImg('images/intro1.png');
     overlay.classList.remove('intro-hidden');
+    showNum(3);
 
-    setTimeout(() => {
-      showImg('images/intro2.png');
-      setTimeout(() => {
+    let n = 3;
+    const timer = setInterval(() => {
+      n--;
+      if (n <= 0) {
+        clearInterval(timer);
         overlay.classList.add('intro-hidden');
         document.body.classList.remove('intro-active');
         resolve();
-      }, 2000);
-    }, 3000);
+      } else {
+        showNum(n);
+      }
+    }, 1000);
   });
 }
 
