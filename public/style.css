@@ -346,7 +346,7 @@ body {
 }
 .dohyo-label img {
   max-width: 185px;
-  max-height: 72px;
+  max-height: 65px;
   object-fit: contain;
   filter: drop-shadow(2px 3px 6px rgba(0,0,0,0.7));
   pointer-events: none;
