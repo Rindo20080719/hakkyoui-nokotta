@@ -66,38 +66,28 @@ function getDbComparison(db) {
 // ── BGM ───────────────────────────────────────
 let bgm = null;
 let bgmUnlocked = false;
-let bgmTimer = null;
-
-function playBGMLoop() {
-  if (!bgm || !bgmUnlocked) return;
-  bgm.currentTime = 0;
-  bgm.play().catch(() => {});
-  bgmTimer = setTimeout(playBGMLoop, 7000);
-}
 
 function initBGM() {
   bgm = document.getElementById('bgmAudio');
   if (!bgm) return;
   bgm.volume = 0.35;
-  bgm.loop = false;
+  bgm.loop = true;
   document.addEventListener('click', function unlockBGM() {
     if (!bgmUnlocked) {
       bgmUnlocked = true;
-      playBGMLoop();
+      bgm.play().catch(() => {});
     }
     document.removeEventListener('click', unlockBGM);
   }, { once: true });
 }
 
 function pauseBGM() {
-  if (bgmTimer) { clearTimeout(bgmTimer); bgmTimer = null; }
   if (bgm) bgm.pause();
 }
 
 function resumeBGM() {
   if (!bgm || !bgmUnlocked) return;
   bgm.play().catch(() => {});
-  bgmTimer = setTimeout(playBGMLoop, 7000);
 }
 
 function lowerBGM() {
