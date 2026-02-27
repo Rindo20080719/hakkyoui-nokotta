@@ -1081,3 +1081,25 @@ body.shake { animation: screen-shake 0.55s ease; }
   .rank-badge { display: none; }
   .ranking-title { font-size: 22px; letter-spacing: 4px; }
 }
+
+/* ── イントロオーバーレイ ── */
+.intro-overlay {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.intro-hidden { display: none !important; }
+.intro-img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  animation: intro-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes intro-pop {
+  from { transform: scale(0.55); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}

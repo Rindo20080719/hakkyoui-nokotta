@@ -163,6 +163,31 @@ function renderAvatarBadge(id, avatar, color, sizeClass, imageUrl) {
 // 録音フロー
 // ══════════════════════════════════════════════
 
+async function showIntro() {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('introOverlay');
+    const img     = document.getElementById('introImg');
+
+    function showImg(src) {
+      img.style.animation = 'none';
+      img.src = src;
+      void img.offsetWidth; // reflow でアニメーションリセット
+      img.style.animation = '';
+    }
+
+    showImg('images/intro1.png');
+    overlay.classList.remove('intro-hidden');
+
+    setTimeout(() => {
+      showImg('images/intro2.png');
+      setTimeout(() => {
+        overlay.classList.add('intro-hidden');
+        resolve();
+      }, 2000);
+    }, 3000);
+  });
+}
+
 async function startRecording() {
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -173,6 +198,9 @@ async function startRecording() {
     alert(msg);
     return;
   }
+
+  // イントロ演出（発狂い!! → のこった!）
+  await showIntro();
 
   // Web Audio API セットアップ
   audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
