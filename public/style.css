@@ -341,16 +341,19 @@ body {
 
 /* ボタンラベル */
 .dohyo-label {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
   position: relative; z-index: 5;
 }
-.dohyo-label img {
-  max-width: 185px;
-  max-height: 65px;
-  object-fit: contain;
-  filter: drop-shadow(2px 3px 6px rgba(0,0,0,0.7));
-  pointer-events: none;
-  user-select: none;
+.dohyo-sub {
+  font-size: 14px; letter-spacing: 6px;
+  color: rgba(26,8,0,0.7);
+  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+}
+.dohyo-main {
+  font-size: 38px; font-weight: 900; letter-spacing: 4px;
+  color: var(--text-dark);
+  font-family: 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  text-shadow: 2px 2px 4px rgba(255,255,255,0.4), -1px -1px 3px rgba(0,0,0,0.3);
 }
 
 .stage-hint {
