@@ -77,7 +77,7 @@ let bgmStartAt  = 0;
 async function initBGM() {
   bgmCtx  = new (window.AudioContext || window.webkitAudioContext)();
   bgmGain = bgmCtx.createGain();
-  bgmGain.gain.value = 0.55;
+  bgmGain.gain.value = 1.5;
   bgmGain.connect(bgmCtx.destination);
 
   try {
@@ -101,7 +101,7 @@ async function initBGM() {
     // スタート画面BGMも初回クリックで再生
     if (currentState === 'start') {
       const sfxStart = document.getElementById('sfxStart');
-      if (sfxStart && sfxStart.paused) { sfxStart.volume = 0.35; sfxStart.play().catch(() => {}); }
+      if (sfxStart && sfxStart.paused) { sfxStart.volume = 1; sfxStart.play().catch(() => {}); }
     }
     document.removeEventListener('click', unlockBGM);
   }, { once: true });
@@ -131,7 +131,7 @@ function resumeBGM() {
   if (!bgmUnlocked || !bgmPaused) return;
   if (bgmGain) {
     bgmGain.gain.cancelScheduledValues(bgmCtx.currentTime);
-    bgmGain.gain.value = 0.55;
+    bgmGain.gain.value = 1.5;
   }
   bgmCtx.resume().then(() => _startBGMSource(bgmOffset));
 }
@@ -141,7 +141,7 @@ function lowerBGM() {
 }
 
 function restoreBGM() {
-  if (bgmGain) bgmGain.gain.value = 0.55;
+  if (bgmGain) bgmGain.gain.value = 1.5;
 }
 
 function fadeBGM(targetVol, durationSec) {
@@ -163,7 +163,7 @@ function playSFXKakka() {
     bgmGain.gain.setValueAtTime(0, bgmCtx.currentTime);
     bgmCtx.resume().then(() => {
       _startBGMSource(bgmOffset);
-      fadeBGM(0.55, 3.5); // 3.5秒かけて元の音量へ
+      fadeBGM(1.5, 3.5); // 3.5秒かけて元の音量へ
     });
   };
 }
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setState('start');
   // スタート画面BGMを自動再生試行（ブロックされても後でクリック時に再生）
   const sfxStart = document.getElementById('sfxStart');
-  if (sfxStart) { sfxStart.volume = 0.35; sfxStart.play().catch(() => {}); }
+  if (sfxStart) { sfxStart.volume = 1; sfxStart.play().catch(() => {}); }
 });
 
 // ── 認証チェック ──────────────────────────────
